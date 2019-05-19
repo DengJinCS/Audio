@@ -181,6 +181,8 @@ def plot3D(feature_csv,result_csv):
     plot_embdding_3D(result, label, '3D t-SNE embedding of the Common feature_vectors (time %.2fs)' % (time() - t0))
     print('t-SNE embedding of the feature_vectors (time %.2fs)' % (time() - t0))
 
+
+"""
 feature_csv = '../Features/ship.csv'
 result_csv_2D = './result_csv/ship_2D.csv'
 result_csv_3D = './result_csv/ship_3D.csv'
@@ -190,5 +192,12 @@ plot3D(feature_csv,result_csv_3D)
 feature_csv = '../Features/ship_vgg.csv'
 result_csv_2D = './result_csv/ship_vgg_2D.csv'
 result_csv_3D = './result_csv/ship_vgg_3D.csv'
+plot2D(feature_csv,result_csv_2D)
+plot3D(feature_csv,result_csv_3D)
+"""
+
+feature_csv = '../Features/ship_incp.csv'
+result_csv_2D = './result_csv/ship_incp_2D.csv'
+result_csv_3D = './result_csv/ship_incp_3D.csv'
 plot2D(feature_csv,result_csv_2D)
 plot3D(feature_csv,result_csv_3D)

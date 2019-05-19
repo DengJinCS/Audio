@@ -3,14 +3,14 @@ from sklearn import neighbors
 from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 
-def KNNClassifer(feature,metadata,type=5):
+def KNNClassifer(feature,metadata,leave_one_out=False,type=5):
     ##############################################################
     #           leave one-out for each file in dataset           #
     ##############################################################
     info = read_meta(metadata)
     print(info)
     acc = np.zeros(len(info))
-    matrix = np.zeros((5, 5), int)
+    matrix = np.zeros((type, type), int)
     # 混淆矩阵
 
     for i in range(len(info)):
@@ -19,8 +19,10 @@ def KNNClassifer(feature,metadata,type=5):
         ID = info[i][0]
         if read_features(feature, leave_out_ID=ID, type=type) == None:
             continue
-        X_train, X_test, y_train, y_test = read_features(feature, leave_out_ID=ID, type=type)
-        #X_train, X_test, y_train, y_test = read_features(feature, type=type)
+        if leave_one_out:
+            X_train, X_test, y_train, y_test = read_features(feature, leave_out_ID=ID, type=type)
+        else:
+            X_train, X_test, y_train, y_test = read_features(feature, type=type)
         model = KNeighborsClassifier(n_neighbors=10)
         model.fit(X_train, y_train)
 

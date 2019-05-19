@@ -109,26 +109,26 @@ def read_meta(metadata):
     print("Info:", info.shape)
     return info
 
-def DenseNetClassifer(feature,metadata,epoch,batch_size,type=5):
+def DenseNetClassifer(feature,metadata,epoch,batch_size,leave_one_out=False, type=5):
     ##############################################################
     #           leave one-out for each file in dataset           #
     ##############################################################
     info = read_meta(metadata)
     print(info)
     acc = np.zeros(len(info))
-    matrix = np.zeros((5,5),int)
+    matrix = np.zeros((type,type),int)
     #混淆矩阵
     for i in range(len(info)):
         data,_,_,_ = read_features(feature,type=type)
 
         model = models.Sequential()
-        model.add(layers.Dense(256, activation='relu', input_shape=(data.shape[1],)))
+        model.add(layers.Dense(5, activation='softmax', input_shape=(data.shape[1],)))
 
-        model.add(layers.Dense(128, activation='relu'))
+        #model.add(layers.Dense(128, activation='relu'))
 
-        model.add(layers.Dense(64, activation='relu'))
+        #model.add(layers.Dense(64, activation='relu'))
 
-        model.add(layers.Dense(5, activation='softmax'))
+        #model.add(layers.Dense(5, activation='softmax'))
 
         model.compile(optimizer='adam',
                       loss='sparse_categorical_crossentropy',
@@ -137,7 +137,10 @@ def DenseNetClassifer(feature,metadata,epoch,batch_size,type=5):
         ID = info[i][0]
         if read_features(feature,leave_out_ID=ID,type=type) == None:
             continue
-        X_train, X_test, y_train, y_test = read_features(feature,leave_out_ID=ID,type=type)
+        if leave_one_out:
+            X_train, X_test, y_train, y_test = read_features(feature,leave_out_ID=ID,type=type)
+        else:
+            X_train, X_test, y_train, y_test = read_features(feature,type=type)
         print(f'*********************Training Classifer When Leave {ID} Out************************')
         print(f'Train:{len(X_train)}   Test:{len(X_test)}    Test Label:{len(y_test)}')
         print(f'*********************Training Classifer When Leave {ID} Out************************')
