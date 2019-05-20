@@ -1,8 +1,14 @@
 from Classifer.DenseNet import read_meta,read_features
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.mixture import GaussianMixture as GMM
 import numpy as np
 
-def KNNClassifer(feature,metadata,leave_one_out=False,type=5):
+import matplotlib.pyplot as plt
+import seaborn as sns; sns.set()
+
+#产生实验数据
+from sklearn.datasets.samples_generator import make_blobs
+
+def GMMClassifer(feature,metadata,leave_one_out=False,type=5):
     ##############################################################
     #           leave one-out for each file in dataset           #
     ##############################################################
@@ -13,7 +19,7 @@ def KNNClassifer(feature,metadata,leave_one_out=False,type=5):
     # 混淆矩阵
 
     for i in range(len(info)):
-        print("Train SVM Classifier.....")
+        print("Train GMM Classifier.....")
         data, _, _, _ = read_features(feature, type=type)
         ID = info[i][0]
         if read_features(feature, leave_out_ID=ID, type=type) == None:
@@ -22,8 +28,8 @@ def KNNClassifer(feature,metadata,leave_one_out=False,type=5):
             X_train, X_test, y_train, y_test = read_features(feature, leave_out_ID=ID, type=type)
         else:
             X_train, X_test, y_train, y_test = read_features(feature, type=type)
-        model = KNeighborsClassifier(n_neighbors=10)
-        model.fit(X_train, y_train)
+        model = GMM(n_components=type).fit(X_train, y_train)
+
 
         print(f'*********************Training Classifer When Leave {ID} Out************************')
         print(f'Train:{len(X_train)}   Test:{len(X_test)}    Test Label:{len(y_test)}')

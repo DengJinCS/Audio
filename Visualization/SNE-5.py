@@ -194,10 +194,12 @@ result_csv_2D = './result_csv/ship_vgg_2D.csv'
 result_csv_3D = './result_csv/ship_vgg_3D.csv'
 plot2D(feature_csv,result_csv_2D)
 plot3D(feature_csv,result_csv_3D)
-"""
 
-feature_csv = '../Features/ship_incp.csv'
-result_csv_2D = './result_csv/ship_incp_2D.csv'
-result_csv_3D = './result_csv/ship_incp_3D.csv'
+
+feature_csv = '../Features/ship_mfcc.csv'
+result_csv_2D = './result_csv/ship_mfcc_2D.csv'
+result_csv_3D = './result_csv/ship_mfcc_3D.csv'
 plot2D(feature_csv,result_csv_2D)
 plot3D(feature_csv,result_csv_3D)
+
+"""

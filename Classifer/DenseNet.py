@@ -122,13 +122,13 @@ def DenseNetClassifer(feature,metadata,epoch,batch_size,leave_one_out=False, typ
         data,_,_,_ = read_features(feature,type=type)
 
         model = models.Sequential()
-        model.add(layers.Dense(5, activation='softmax', input_shape=(data.shape[1],)))
+        model.add(layers.Dense(1024, activation='softmax', input_shape=(data.shape[1],)))
 
         #model.add(layers.Dense(128, activation='relu'))
 
         #model.add(layers.Dense(64, activation='relu'))
 
-        #model.add(layers.Dense(5, activation='softmax'))
+        model.add(layers.Dense(5, activation='softmax'))
 
         model.compile(optimizer='adam',
                       loss='sparse_categorical_crossentropy',

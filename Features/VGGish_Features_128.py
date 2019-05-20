@@ -61,6 +61,7 @@ import vggish_input
 import vggish_params
 import vggish_postprocess
 import vggish_slim
+import re
 
 flags = tf.app.flags
 
@@ -148,7 +149,8 @@ def main(_):
                 ####################
                 for embedding in postprocessed_batch:
                     count += 1
-                    to_append = f'{shipname.split("-")[1].split("__")[0]}'  # 加上文件名
+                    ID = re.findall(r'\d+',shipname)[0]
+                    to_append = f'{ID} '  # 加上文件名
                     # A-15__10_07_13_radaUno_Pasa_1.wav
                     # 只保留文件ID ，eg. 15
                     for e in embedding:
