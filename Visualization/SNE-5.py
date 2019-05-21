@@ -7,19 +7,57 @@ import pandas as pd
 import csv
 import os
 
+
+def get_cmap(n, name='hsv'):
+    '''Returns a function that maps each index in 0, 1, ..., n-1 to a distinct
+    RGB color; the keyword argument name must be a standard mpl colormap name.'''
+    return plt.cm.get_cmap(name, n)
+def read_meta(metadata,type = 11):
+    ####################################################################
+    #                                get metadata                      #
+    ####################################################################
+    meta = pd.read_csv(metadata)
+    ID = meta.iloc[:, 0]
+    ID = np.array(ID)
+    #print("ID:", ID.shape)
+
+    Type = meta.iloc[:, 1]
+    #print("Type:",Type)
+    encoder = LabelEncoder()
+    Type = encoder.fit_transform(Type)
+    # 编码为数字数组向量
+    #print("Type:", Type.shape)
+
+    Class = meta.iloc[:, -1]
+    encoder = LabelEncoder()
+    Class = encoder.fit_transform(Class)
+    # 编码为数字数组向量
+    print("Class:", Class.shape)
+    # 拼接为列向量保持原始格式
+    info = np.hstack((ID.reshape(len(ID), 1),
+                      Type.reshape(len(Type), 1),
+                      Class.reshape(len(Class), 1)))
+    print("Info:", info.shape)
+    return info
+
+
+
 #绘制2D散点图
-def plot_embdding(data, label, title):
+def plot_embdding(data, label, title,type=12):
     x_min, x_max = np.min(data, 0), np.max(data, 0)
     data = (data - x_min) / (x_max - x_min)
     fig = plt.figure(figsize=(15, 10))
     plt.subplot(111)
     print(label)
-    color = ['red','green','yellow','blue','orange']
-    labels = ['A','B','C','D','E']
-    for k in range(5):
+    color = get_cmap(type)
+    if type==5:
+        labels = ['A','B','C','D','E']
+    else:
+        labels = ['Fishboat', 'Mussel_boat', 'Ocean_liner', 'Tugboat', 'Sailboat', 'Trawler', 'RORO', 'Passengers', 'Natural_noise', 'Motorboat', ',Pilot_ship', 'Dredger']
+    for k in range(type):
         plt.scatter([data[i, 0] for i in range(int(label[k]), int(label[k+1]))],  # X
                     [data[i, 1] for i in range(int(label[k]), int(label[k+1]))],  # Y
-                    color=color[k],
+                    color=color(k),
                     label=labels[k],
                     marker='o')
     plt.legend(loc='best')
@@ -194,12 +232,11 @@ result_csv_2D = './result_csv/ship_vgg_2D.csv'
 result_csv_3D = './result_csv/ship_vgg_3D.csv'
 plot2D(feature_csv,result_csv_2D)
 plot3D(feature_csv,result_csv_3D)
+"""
 
-
-feature_csv = '../Features/ship_mfcc.csv'
-result_csv_2D = './result_csv/ship_mfcc_2D.csv'
-result_csv_3D = './result_csv/ship_mfcc_3D.csv'
+feature_csv = '../Features/ship_26_11.csv'
+result_csv_2D = './result_csv/ship_12_2D.csv'
+result_csv_3D = './result_csv/ship_12_3D.csv'
 plot2D(feature_csv,result_csv_2D)
 plot3D(feature_csv,result_csv_3D)
 
-"""

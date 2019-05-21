@@ -89,7 +89,7 @@ def read_meta(metadata):
     meta = pd.read_csv(metadata)
     ID = meta.iloc[:, 0]
     ID = np.array(ID)
-    print("ID:", ID.shape)
+    #print("ID:", ID.shape)
 
     Type = meta.iloc[:, 1]
     encoder = LabelEncoder()
@@ -101,7 +101,7 @@ def read_meta(metadata):
     encoder = LabelEncoder()
     Class = encoder.fit_transform(Class)
     # 编码为数字数组向量
-    print("Class:", Class.shape)
+    #print("Class:", Class.shape)
     # 拼接为列向量保持原始格式
     info = np.hstack((ID.reshape(len(ID), 1),
                       Type.reshape(len(Type), 1),
