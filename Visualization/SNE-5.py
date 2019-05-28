@@ -6,54 +6,24 @@ from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
 import csv
 import os
+from Classifer.CLF import read_meta
 
 
 def get_cmap(n, name='hsv'):
     '''Returns a function that maps each index in 0, 1, ..., n-1 to a distinct
     RGB color; the keyword argument name must be a standard mpl colormap name.'''
     return plt.cm.get_cmap(name, n)
-def read_meta(metadata,type = 11):
-    ####################################################################
-    #                                get metadata                      #
-    ####################################################################
-    meta = pd.read_csv(metadata)
-    ID = meta.iloc[:, 0]
-    ID = np.array(ID)
-    #print("ID:", ID.shape)
-
-    Type = meta.iloc[:, 1]
-    #print("Type:",Type)
-    encoder = LabelEncoder()
-    Type = encoder.fit_transform(Type)
-    # 编码为数字数组向量
-    #print("Type:", Type.shape)
-
-    Class = meta.iloc[:, -1]
-    encoder = LabelEncoder()
-    Class = encoder.fit_transform(Class)
-    # 编码为数字数组向量
-    print("Class:", Class.shape)
-    # 拼接为列向量保持原始格式
-    info = np.hstack((ID.reshape(len(ID), 1),
-                      Type.reshape(len(Type), 1),
-                      Class.reshape(len(Class), 1)))
-    print("Info:", info.shape)
-    return info
-
-
 
 #绘制2D散点图
-def plot_embdding(data, label, title,type=12):
+def plot_embdding_2D(data,meta,label, title,type=12):
     x_min, x_max = np.min(data, 0), np.max(data, 0)
     data = (data - x_min) / (x_max - x_min)
     fig = plt.figure(figsize=(15, 10))
     plt.subplot(111)
     print(label)
     color = get_cmap(type)
-    if type==5:
-        labels = ['A','B','C','D','E']
-    else:
-        labels = ['Fishboat', 'Mussel_boat', 'Ocean_liner', 'Tugboat', 'Sailboat', 'Trawler', 'RORO', 'Passengers', 'Natural_noise', 'Motorboat', ',Pilot_ship', 'Dredger']
+    _,dic = read_meta(meta)
+    labels = [dic[i] for i in range(type)]
     for k in range(type):
         plt.scatter([data[i, 0] for i in range(int(label[k]), int(label[k+1]))],  # X
                     [data[i, 1] for i in range(int(label[k]), int(label[k+1]))],  # Y
@@ -68,23 +38,23 @@ def plot_embdding(data, label, title,type=12):
     return fig
 
 #绘制3D散点图
-def plot_embdding_3D(data, label,title):
+def plot_embdding_3D(data,meta,label,title,type=12):
     x_min, x_max = np.min(data, 0), np.max(data, 0)
     data = (data - x_min) / (x_max - x_min)
     fig = plt.figure(figsize=(10, 6))
     plt.subplot(111)
     ax = Axes3D(fig)
     print(label)
-    color = ['red', 'green', 'yellow', 'blue','orange']
-    labels = ['A', 'B', 'C', 'D','E']
-    for j in range(5):
-        ax.scatter([data[i, 0] for i in range(int(label[j]), int(label[j+1]))],  # X
-                   [data[i, 1] for i in range(int(label[j]), int(label[j+1]))],  # Y
-                   [data[i, 2] for i in range(int(label[j]), int(label[j+1]))],  # Z
-                   color = color[j],
-                   label=labels[j],
-                   marker='o'
-        )
+    color = get_cmap(type)
+    _, dic = read_meta(meta)
+    labels = [dic[i] for i in range(type)]
+    for k in range(type):
+        plt.scatter([data[i, 0] for i in range(int(label[k]), int(label[k + 1]))],  # X
+                    [data[i, 1] for i in range(int(label[k]), int(label[k + 1]))],  # Y
+                    [data[i, 2] for i in range(int(label[k]), int(label[k + 1]))],  # Z
+                    color=color(k),
+                    label=labels[k],
+                    marker='o')
 
     ax.legend(loc='best')
     ax.set_xlabel('X')
@@ -97,7 +67,7 @@ def plot_embdding_3D(data, label,title):
     return fig
 
 #读取特征，返回特征矩阵和计数
-def read_feture(csvfile):
+def read_feture(csvfile,meta='../Features/meta.csv'):
     data = pd.read_csv(csvfile)
     print("Origin:", data.shape)
 
@@ -108,10 +78,11 @@ def read_feture(csvfile):
     feature = np.array(data.iloc[:, :-1], dtype=float)
     print("feature:", feature.shape)
 
-    genres = 'A B C D E'.split()
-    label = np.zeros(6)
-    for i in range(1, 6):
-        label[i] = len(data[data.label == genres[i - 1]]) + label[i - 1]
+    _,genres = read_meta(meta)#获取标签名称
+    genres = [genres[i] for i in range(len(genres))]
+    label = np.zeros(len(genres)+1)
+    for i in range(1, len(genres)+1):
+        label[i] = len(data[data.label == genres[i - 1]]) + label[i - 1]#每一个标签的计数
     print("count:", label)
 
     return feature, label
@@ -201,22 +172,26 @@ def read_result(csvfile):
     print("Visaul data shape:", feature.shape)
     return feature
 
-def plot2D(feature_csv,result_csv):
+def plot2D(feature_csv,meta,result_csv):
     t0 = time()
-    feature,label = read_feture(feature_csv)
+    feature,label = read_feture(feature_csv,meta=meta)
     if not os.path.exists(result_csv):
         v2csv2D(feature,label,result_csv)
     result = read_result(result_csv)
-    plot_embdding(result, label,'2D t-SNE embedding of the Common feature_vectors (time %.2fs)' % (time() - t0))
+    plot_embdding_2D(result,meta,label,
+                     '2D t-SNE embedding of the feature_vectors (time %.2fs)' % (time() - t0),
+                     type=len(label)-1)
     print('t-SNE embedding of the feature_vectors (time %.2fs)' % (time() - t0))
 
-def plot3D(feature_csv,result_csv):
+def plot3D(feature_csv,meta,result_csv):
     t0 = time()
-    feature, label = read_feture(feature_csv)
+    feature, label = read_feture(feature_csv,meta)
     if not os.path.exists(result_csv):
         v2csv3D(feature, label, result_csv)
     result = read_result(result_csv)
-    plot_embdding_3D(result, label, '3D t-SNE embedding of the Common feature_vectors (time %.2fs)' % (time() - t0))
+    plot_embdding_3D(result,meta,label,
+                     '3D t-SNE embedding of the Common feature_vectors (time %.2fs)' % (time() - t0),
+                     type=len(label)-1)
     print('t-SNE embedding of the feature_vectors (time %.2fs)' % (time() - t0))
 
 
@@ -225,7 +200,7 @@ feature_csv = '../Features/ship.csv'
 result_csv_2D = './result_csv/ship_2D.csv'
 result_csv_3D = './result_csv/ship_3D.csv'
 plot2D(feature_csv,result_csv_2D)
-plot3D(feature_csv,result_csv_3D)
+#plot3D(feature_csv,result_csv_3D,meta=meta)
 
 feature_csv = '../Features/ship_vgg.csv'
 result_csv_2D = './result_csv/ship_vgg_2D.csv'
@@ -234,9 +209,11 @@ plot2D(feature_csv,result_csv_2D)
 plot3D(feature_csv,result_csv_3D)
 """
 
-feature_csv = '../Features/ship_26_11.csv'
+feature_csv = '../Features/ship_66_11.csv'
+meta = '../Features/meta.csv'
 result_csv_2D = './result_csv/ship_12_2D.csv'
 result_csv_3D = './result_csv/ship_12_3D.csv'
-plot2D(feature_csv,result_csv_2D)
-plot3D(feature_csv,result_csv_3D)
+plot2D(feature_csv=feature_csv,meta=meta,result_csv=result_csv_2D)
+plot3D(feature_csv=feature_csv,meta=meta,result_csv=result_csv_3D)
+
 

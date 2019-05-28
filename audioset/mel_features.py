@@ -114,7 +114,7 @@ def hertz_to_mel(frequencies_hertz):
 def spectrogram_to_mel_matrix(num_mel_bins=20,
                               num_spectrogram_bins=129,
                               audio_sample_rate=8000,
-                              lower_edge_hertz=125.0,
+                              lower_edge_hertz=0.0,
                               upper_edge_hertz=3800.0):
   """Return a matrix that can post-multiply spectrogram rows to make mel.
 

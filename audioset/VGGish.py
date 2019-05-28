@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright 2017 The TensorFlow Authors All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,16 +44,16 @@ Usage:
                                 --checkpoint /path/to/model/checkpoint
 """
 
-from __future__ import print_function
-
 from random import shuffle
 
 import numpy as np
 import tensorflow as tf
-
+import glob
 import vggish_input
 import vggish_params
 import vggish_slim
+import librosa
+import os
 
 flags = tf.app.flags
 slim = tf.contrib.slim
@@ -74,8 +75,12 @@ flags.DEFINE_string(
 
 FLAGS = flags.FLAGS
 
-_NUM_CLASSES = 3
 
+path = '../Data/Type_12/'
+
+sub_paths = glob.glob(path+'*')
+genres = [g.split(path)[1] for g in sub_paths]
+_NUM_CLASSES = len(genres)
 
 def _get_examples_batch():
   """Returns a shuffled batch of examples of all audio classes.
@@ -91,40 +96,62 @@ def _get_examples_batch():
     [batch_size, num_classes] where each row is a multi-hot label vector that
     provides the labels for corresponding rows in features.
   """
-  # Make a waveform for each class.
-  num_seconds = 5
-  sr = 44100  # Sampling rate.
-  t = np.linspace(0, num_seconds, int(num_seconds * sr))  # Time axis.
-  # Random sine wave.
-  freq = np.random.uniform(100, 1000)
-  sine = np.sin(2 * np.pi * freq * t)
-  # Random constant signal.
-  magnitude = np.random.uniform(-1, 1)
-  const = magnitude * t
-  # White noise.
-  noise = np.random.normal(-1, 1, size=t.shape)
+  count_genre = 0
+  genre_examples = None
+  genre_labels = None
+  labels = np.eye(len(genres), dtype=int)
 
-  # Make examples of each signal and corresponding labels.
-  # Sine is class index 0, Const class index 1, Noise class index 2.
-  sine_examples = vggish_input.waveform_to_examples(sine, sr)
-  sine_labels = np.array([[1, 0, 0]] * sine_examples.shape[0])
-  const_examples = vggish_input.waveform_to_examples(const, sr)
-  const_labels = np.array([[0, 1, 0]] * const_examples.shape[0])
-  noise_examples = vggish_input.waveform_to_examples(noise, sr)
-  noise_labels = np.array([[0, 0, 1]] * noise_examples.shape[0])
+  for g in genres:
+      ship_examples = None
+      ship_labels = None
+      count_ship = 0
 
-  # Shuffle (example, label) pairs across all classes.
-  all_examples = np.concatenate((sine_examples, const_examples, noise_examples))
-  print("all_examples.shape:",all_examples.shape)
-  all_labels = np.concatenate((sine_labels, const_labels, noise_labels))
-  labeled_examples = list(zip(all_examples, all_labels))
-  #print("zip(all_examples, all_labels):",zip(all_examples, all_labels).shape())
-  shuffle(labeled_examples)
+      for shipname in os.listdir(path + "/" + g):
+          print("shipname:", shipname)
+          data, sr = librosa.load(path + "/" + g + "/" + shipname, mono=True, sr=16000)
+          ship_example = vggish_input.waveform_to_examples(data, sr)
+          """
+          Returns:
+                3-D np.array of shape [num_examples, num_frames, num_bands] which represents
+                a sequence of examples, each of which contains a patch of log mel
+                spectrogram, covering num_frames frames of audio and num_bands mel frequency
+                bands, where the frame length is vggish_params.STFT_HOP_LENGTH_SECONDS.
+          """
+          label_k, i = 0, 0
+          for genre in genres:
+              if g == genre:
+                  label_k = i
+              i += 1
+          label = labels[label_k]
+          ship_label = np.array([label] * ship_example.shape[0])
+          print("ship_example of", shipname, ":", ship_example.shape)
+          print("ship_lebel of", shipname, ":", ship_label.shape)
 
-  # Separate and return the features and labels.
-  features = [example for (example, _) in labeled_examples]
-  labels = [label for (_, label) in labeled_examples]
+          if count_ship == 0:
+              ship_examples = ship_example
+              ship_labels = ship_label
+          else:
+              # 将每一个类别的数据连接起来
+              ship_examples = np.concatenate((ship_examples, ship_example),axis=0)
+              ship_labels = np.concatenate((ship_labels, ship_label),axis=0)
+          count_ship += 1
+          # ship_labels.append(ship_label)
+      if count_genre == 0:
+          genre_examples = ship_examples
+          genre_labels = ship_labels
+      else:
+          # 将每个类别的数据连接起来
+          genre_examples = np.concatenate((genre_examples, ship_examples),axis=0)
+          genre_labels = np.concatenate((genre_labels, ship_labels),axis=0)
+          count_genre += 1
+      print("\ngenre_examples of", g, ":", genre_examples.shape)
+      print("genre_labels of", g, ":", genre_labels.shape,"\n")
+  genre_examples = list(zip(genre_examples, genre_labels))
+  shuffle(genre_examples)  # 将所有数据打乱
+  features = [example for (example, _) in genre_examples]
+  labels = [label for (_, label) in genre_examples]
   return (features, labels)
+
 
 
 def main(_):
