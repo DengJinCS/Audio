@@ -24,9 +24,9 @@ from Features.DEMON import *
 
 cmap = plt.get_cmap('inferno')
 
-path = '/home/atticus/Documents/ShipData/ShipsEar/ABCDE/'
+path = '/home/atticus/Documents/ShipData/two/'
 #genres = 'Fishboat Mussel_boat Ocean_liner Tugboat Sailboat Trawler RORO Passengers Natural_noise Motorboat Pilot_ship Dredger'.split()
-genres = 'A B C D E'.split()
+genres = 'Passengers Motorboat '.split()
 
 ###################
 #Writing data to csv file
@@ -57,7 +57,7 @@ for i in range(1, 21):
 header += ' label'
 header = header.split()
 
-csvfile = 'ship_25_5.csv'
+csvfile = 'ship_25_2.csv'
 if os.path.exists(csvfile):
     os.remove(csvfile)
 
